@@ -3,10 +3,11 @@
 #ifndef RELAY_H
 #define RELAY_H
 
+#include <inttypes.h>
 
 void relay_init();
 void serviceRelay();
-int getRelayState();
+uint16_t getRelayState();
 
 
 

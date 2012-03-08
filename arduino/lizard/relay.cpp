@@ -12,14 +12,13 @@
  
 static int state = 0;
 
-// I dont know how to make these constants
-static int LOW_PORT = 4;
-static int HIGH_PORT =  9;
+#define LOW_PORT (4)
+#define HIGH_PORT (9)
  
-static int RING_SIZE = 3;
-static int stateRing[ 3 ];
-
-static int ringIndex = 0;
+// debounce sample ring buffer
+#define RING_SIZE (3)
+static uint16_t stateRing[ RING_SIZE ];
+static uint16_t ringIndex = 0;
 
 void relay_init() {
   int i;
@@ -35,7 +34,7 @@ void relay_init() {
 
 void serviceRelay() {
   int i;
-  int readState = 0;
+  uint16_t readState = 0;
   
   for (i=LOW_PORT; i<=HIGH_PORT; i++) {
     if (LOW == digitalRead(i)) {
@@ -48,8 +47,8 @@ void serviceRelay() {
   
   // This tells us what bits are stable at 1
   // 1 = stable at 1, 0 = unstable
-  int andBits = stateRing[0];
-  int orBits = stateRing[0];
+  uint16_t andBits = stateRing[0];
+  uint16_t orBits = stateRing[0];
   for (i=1;i<RING_SIZE;i++) {
     andBits &= stateRing[i];
     orBits |= stateRing[i];
@@ -64,7 +63,7 @@ void serviceRelay() {
   
 }
 
-int getRelayState() {
+uint16_t getRelayState() {
  
  return state; 
 }
