@@ -6,14 +6,21 @@
 #include <Time.h>
 
 #include "wserver.h"
+#include "events.h"
+
+void printJsonForEvent(char *, int, event_t *);
 
 // This is our MAC address
 static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-/* This creates an instance of the webserver.  By specifying a prefix
- * of "/", all pages will be at the root of the server. */
-#define PREFIX "/"
+/* This creates an instance of the webserver.  
+ * PREFIX must not end with a '/'.  If you want everything at the
+ * root, use an empty prefix ("")
+ */
+#define PREFIX ""
 WebServer webserver(PREFIX, 80);
+
+static char jsonEventFormat[] = "{\"seconds\":%ld,\"millis\":%d,\"deviceId\":%d,\"value\":%d}";
 
 /* commands are functions that get called by the webserver framework
  * they can read any posted data from client, and they output to the
@@ -44,6 +51,55 @@ void helloCmd(WebServer &server, WebServer::ConnectionType type, char *, bool)
 
 }
 
+void eventsCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
+{
+
+	char buffer[sizeof(event_t) * MAX_EVENTS];
+	event_t *event;
+	char comma = ' ';
+	
+	server.httpSuccess("application/json");
+	time_t currSeconds = 0;
+	uint16_t currMillis = 0;
+	
+	server.print("{\"events\":[");
+	while ((event=getNextEvent(currSeconds,currMillis)) != 0) {
+	    if (comma != ' ') {
+			server.print(comma);
+		}
+		currSeconds = event->seconds;
+		currMillis = event->millis;
+		printJsonForEvent(buffer, sizeof(buffer), event);
+		server.print(buffer);
+		comma = ',';
+	}
+	server.print("]}");
+
+}
+
+void testCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
+{
+
+	
+	server.httpSuccess("application/json");
+
+	server.print("{\"dateTimeForma\":\"mmm dd yyy HH:MM:ss GMT\",\"events\":[]}");
+}
+
+
+void printJsonForEvent(char* buf, int bufSize, event_t *event) {
+
+	PString mystring(buf, bufSize);
+	mystring.format(jsonEventFormat,
+					event->seconds,
+					event->millis,
+					event->inputId,
+					event->value);
+	return;
+
+
+}
+
 void server_init() {
   
  
@@ -68,7 +124,9 @@ void server_init() {
 
   /* run the same command if you try to load /index.html, a common
    * default page name */
-  webserver.addCommand("index.html", &helloCmd);
+  webserver.addCommand("index", &helloCmd);
+  webserver.addCommand("events", &eventsCmd);
+  webserver.addCommand("test", &testCmd);
 
   /* start the webserver */
   webserver.begin();

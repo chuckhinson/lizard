@@ -11,9 +11,10 @@ typedef struct {
 	uint8_t		value;
 } event_t;	
 
+#define MAX_EVENTS (10)
 
 void events_init();
 void processRelayEvents(int);
-event_t* getNextEvent(time_t);
+event_t* getNextEvent(time_t, uint16_t);
 
 #endif

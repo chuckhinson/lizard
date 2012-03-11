@@ -10,6 +10,7 @@
 #include "ntptime.h"
 #include "wserver.h"
 #include "relay.h"
+#include "events.h"
 
 static int counter = 0;
 static int relayState = 0;
@@ -56,6 +57,8 @@ void loop()
     Serial.println(state);
     relayState = state;
   }
+
+  processRelayEvents(state);
   
   /* process incoming connections one at a time forever */
   /* This should be done last so as to have latest info gathered on this iteration */
