@@ -133,9 +133,9 @@ void printIndicator(WebServer &server, int num) {
     server.println("<li>");
     server.println("<div class=\"indicator\">");
     server.print  ("<span class=\"off-indicator ");
-	if (state != 0) server.print("off-active");
+	if (state == 0) server.print("off-active");
 	server.println("\">OFF</span><span class=\"on-indicator ");
-	if (state == 0) server.print("on-active");
+	if (state != 0) server.print("on-active");
     server.println("\">ON</span>        <span class=\"event-time\">00:00:00</span>");
     server.println("</div>");
 	server.print  ("<span class=\"indicator-name\">Zone");
