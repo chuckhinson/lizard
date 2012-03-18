@@ -4,5 +4,6 @@
 
 void ntptime_init();
 void serviceNtpTime();
+time_t getBootTime();
 
 #endif

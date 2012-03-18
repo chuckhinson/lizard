@@ -10,6 +10,8 @@
 void sendNtpPacket(IPAddress& address);
 time_t parseNtpPacket();
 
+time_t bootTime = 0;
+
 /* Keeps track of our ntp processing state. Possible values are:
  * 0 = not initialized
  * 1 = initialized, waiting for sync interval
@@ -73,9 +75,11 @@ void ntptime_init() {
     delay(500);
     serviceNtpTime();  
   }
+  bootTime = now();
+
   ipaddresses[0].printTo(Serial);
   Serial.print("Time : ");
-  Serial.println(now());
+  Serial.println(bootTime);
   
 }
 
@@ -102,6 +106,10 @@ void serviceNtpTime() {
       break;
   }
   
+}
+
+time_t getBootTime() {
+	return bootTime;
 }
 
 // send an NTP request to the time server at the given address 

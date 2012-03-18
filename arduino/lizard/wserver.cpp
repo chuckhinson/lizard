@@ -4,11 +4,18 @@
 #include <WebServer.h>
 #include <PString.h>
 #include <Time.h>
+#include <avr/pgmspace.h>
 
 #include "wserver.h"
+#include "ntptime.h"
+#include "relay.h"
 #include "events.h"
+#include "status_css.h"
 
 void printJsonForEvent(char *, int, event_t *);
+void printInfoColumn(WebServer &server);
+void printIndicatorColumn(WebServer &server);
+void printIndicator(WebServer &server, int num);
 
 // This is our MAC address
 static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -22,32 +29,131 @@ WebServer webserver(PREFIX, 80);
 
 static char jsonEventFormat[] = "{\"seconds\":%ld,\"millis\":%d,\"deviceId\":%d,\"value\":%d}";
 
+
+const prog_uchar status_doc_part1[] PROGMEM = 
+"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\""
+                 "\"http://www.w3.org/TR/html4/loose.dtd\">"
+                 "<html>"
+                 "<head>"
+				 "<meta http-equiv=\"refresh\" content=\"5\">";
+				 
+const prog_uchar status_doc_part2[] PROGMEM = 
+"<title>Lizard System Status</title>"
+                   "</head>"
+                   "<body>"
+                   "<div class=\"header\">"
+                   "<h1>Lizard System Status</h1>"
+                   "</div>"
+                   "<div class=\"columns\">";				 
+				 
 /* commands are functions that get called by the webserver framework
  * they can read any posted data from client, and they output to the
  * server to send data back to the web browser. */
 void helloCmd(WebServer &server, WebServer::ConnectionType type, char *, bool)
 {
-  char buffer[64];
-  PString mystring(buffer, sizeof(buffer));
   
   /* this line sends the standard "we're all OK" headers back to the
      browser */
   server.httpSuccess();
-
+  
   /* if we're handling a GET or POST, we can output our data here.
      For a HEAD request, we just stop after outputting headers. */
   if (type != WebServer::HEAD)
   {
-    mystring = "Current Time: ";
-    mystring.print(hour(now()));
-    mystring += ":";
-    mystring.print(minute(now()));
-    mystring += ":";
-    mystring.println(second(now()));
-    
-    server.print(mystring);
+	server.printP(status_doc_part1);
+				 
+	server.printP(status_css);
+	
+	server.printP(status_doc_part2);
+	
+	printInfoColumn(server);
+	
+	printIndicatorColumn(server);
+	
+    server.println("</div><body></html>");
 
   }
+
+}
+
+void printInfoColumn(WebServer &server) {
+
+    char buffer[64];
+    PString mystring(buffer, sizeof(buffer));
+
+	server.println("<div class=\"info-column\">");
+	server.print("<p>Last boot: ");
+
+	time_t t = getBootTime();
+    mystring.print(hour(t));
+    mystring += ":";
+    mystring.print(minute(t));
+    mystring += ":";
+    mystring.print(second(t));
+	mystring += "GMT ";
+	mystring.print(day(t));
+	mystring +="-";
+	mystring.print(monthShortStr(month(t)));
+	mystring +="-";
+	mystring.print(year(t));
+    server.print(mystring);
+	
+	server.print("</p><p>IP address: ");
+	mystring.begin();
+	for (byte thisByte = 0; thisByte < 4; thisByte++) {
+		// print the value of each byte of the IP address:
+		mystring.print(Ethernet.localIP()[thisByte], DEC);
+		mystring +="."; 
+	}
+	server.println(mystring);
+	
+	server.println("</div>");
+
+}
+
+void printIndicatorColumn(WebServer &server) {
+	server.println("<div class=\"indicator-column\">");
+	server.println("<ul class=indicator-list>");
+
+	printIndicator(server, 1);
+	printIndicator(server, 2);
+	printIndicator(server, 3);
+	printIndicator(server, 4);
+	
+	server.println("</ul>\n</div>");
+
+}
+
+
+void printIndicator(WebServer &server, int num) {
+
+	int state = getRelayState();
+	state = (state >> num) & 1;
+	
+    server.println("<li>");
+    server.println("<div class=\"indicator\">");
+    server.print  ("<span class=\"off-indicator ");
+	if (state != 0) server.print("off-active");
+	server.println("\">OFF</span><span class=\"on-indicator ");
+	if (state == 0) server.print("on-active");
+    server.println("\">ON</span>        <span class=\"event-time\">00:00:00</span>");
+    server.println("</div>");
+	server.print  ("<span class=\"indicator-name\">Zone");
+	server.println(num);
+	server.println("</span>\n</li>");
+
+}
+
+void printJsonForEvent(char* buf, int bufSize, event_t *event) {
+
+	PString mystring(buf, bufSize);
+	mystring.format(jsonEventFormat,
+					event->seconds,
+					event->millis,
+					event->inputId,
+					event->value);
+	return;
+
 
 }
 
@@ -79,26 +185,11 @@ void eventsCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
 
 void testCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
 {
-
-	
 	server.httpSuccess("application/json");
 
-	server.print("{\"dateTimeForma\":\"mmm dd yyy HH:MM:ss GMT\",\"events\":[]}");
+	server.print("{\"dateTimeFormat\":\"mmm dd yyy HH:MM:ss GMT\",\"events\":[]}");
 }
 
-
-void printJsonForEvent(char* buf, int bufSize, event_t *event) {
-
-	PString mystring(buf, bufSize);
-	mystring.format(jsonEventFormat,
-					event->seconds,
-					event->millis,
-					event->inputId,
-					event->value);
-	return;
-
-
-}
 
 void server_init() {
   
