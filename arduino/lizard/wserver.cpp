@@ -112,16 +112,14 @@ void printInfoColumn(WebServer &server) {
 }
 
 void printIndicatorColumn(WebServer &server) {
+	int i;
+	
 	server.println("<div class=\"indicator-column\">");
 	server.println("<ul class=indicator-list>");
 
-	printIndicator(server, 0);
-	printIndicator(server, 1);
-	printIndicator(server, 2);
-	printIndicator(server, 3);
-	printIndicator(server, 4);
-	printIndicator(server, 5);
-	printIndicator(server, 6);
+	for (i=0; i<MAX_LINES; i++) {
+		printIndicator(server, i);
+	}
 	
 	server.println("</ul>\n</div>");
 
