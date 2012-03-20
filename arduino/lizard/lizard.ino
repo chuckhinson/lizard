@@ -58,9 +58,9 @@ void loop()
     relayState = state;
   }
 
-  processRelayEvents(state);
+  processRelayEvents(getLineState());
   
-  /* process incoming connections one at a time forever */
+  /* process incoming web server connections one at a time forever */
   /* This should be done last so as to have latest info gathered on this iteration */
   serviceServer();
 

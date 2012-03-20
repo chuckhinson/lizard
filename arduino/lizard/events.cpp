@@ -8,6 +8,10 @@ static event_t event_buf[ EVENT_RING_SZ];
 static int currEventIndex = 0;
 static uint16_t prevRelayState = 0;
 
+#define MAX_LINES (8)
+static time_t lastEventTime[MAX_LINES];
+static int lastEventState[MAX_LINES];
+
 void events_init() {
 
 }
@@ -15,7 +19,7 @@ void events_init() {
 
 
 /*
- * Create new events based on the current relay state.
+ * Create new events based on the current input line state.
  *
  * Note that we're using fake milliseconds in our event timestampsin 
  * order to give us unique timestamps.  Because the time returned by 
@@ -26,7 +30,7 @@ void events_init() {
  * value which is really a count of the number of events generated during 
  * the current second.
  */
-void processRelayEvents(int newRelayState) {
+void processRelayEvents(int newLineState) {
 
 	event_t *currEvent = &event_buf[currEventIndex];
 
@@ -36,18 +40,22 @@ void processRelayEvents(int newRelayState) {
 		milliseconds = currEvent->millis;
 	}
 	
-	uint16_t changes = newRelayState ^ prevRelayState;  // find out which bits have change
-	prevRelayState = newRelayState;
+	uint16_t changes = newLineState ^ prevRelayState;  // find out which bits have change
+	prevRelayState = newLineState;
 	
-	for(int i=0;i<sizeof(changes);i++) {
+	for(int i=0;i<MAX_LINES;i++) {
 		uint16_t bitmask = ((uint16_t)1) << i;  // make a bitmask for the current bit
 		if (changes & bitmask) {
 			currEventIndex = (currEventIndex + 1) % EVENT_RING_SZ;
 			currEvent = &event_buf[currEventIndex];
 			currEvent->seconds = seconds;
 			currEvent->millis = milliseconds++;
-			currEvent->inputId = i+1; // pin numbers start at 1
-			currEvent->value = (newRelayState & bitmask) ? 1 : 0;
+			currEvent->inputId = i; 
+			currEvent->value = (newLineState & bitmask) ? 1 : 0;
+			
+			lastEventTime[i] = currEvent->seconds;
+			lastEventState[i] = currEvent->value;
+			
 			Serial.print("id: ");
 			Serial.print(currEvent->inputId);
 			Serial.print("  value: ");
@@ -83,4 +91,12 @@ event_t* getNextEvent(time_t seconds, uint16_t milliseconds) {
 
 	return nextEvent;
 
+}
+
+time_t getLastEventTime(int i) {
+  return lastEventTime[i];
+}
+
+int getLastEventState(int i) {
+  return lastEventState[i];
 }

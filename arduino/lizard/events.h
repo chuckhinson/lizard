@@ -16,5 +16,7 @@ typedef struct {
 void events_init();
 void processRelayEvents(int);
 event_t* getNextEvent(time_t, uint16_t);
+time_t getLastEventTime(int);
+int getLastEventState(int);
 
 #endif

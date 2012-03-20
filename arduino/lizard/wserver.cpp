@@ -107,7 +107,7 @@ void printInfoColumn(WebServer &server) {
 	}
 	server.println(mystring);
 	
-	server.println("</div>");
+	server.println("</p></div>");
 
 }
 
@@ -115,10 +115,13 @@ void printIndicatorColumn(WebServer &server) {
 	server.println("<div class=\"indicator-column\">");
 	server.println("<ul class=indicator-list>");
 
+	printIndicator(server, 0);
 	printIndicator(server, 1);
 	printIndicator(server, 2);
 	printIndicator(server, 3);
 	printIndicator(server, 4);
+	printIndicator(server, 5);
+	printIndicator(server, 6);
 	
 	server.println("</ul>\n</div>");
 
@@ -127,19 +130,31 @@ void printIndicatorColumn(WebServer &server) {
 
 void printIndicator(WebServer &server, int num) {
 
-	int state = getRelayState();
-	state = (state >> num) & 1;
+    char buffer[16];
+    PString mystring(buffer, sizeof(buffer));
+	
+	time_t t = getLastEventTime(num);
+	int state = getLastEventState(num);
 	
     server.println("<li>");
     server.println("<div class=\"indicator\">");
     server.print  ("<span class=\"off-indicator ");
 	if (state == 0) server.print("off-active");
-	server.println("\">OFF</span><span class=\"on-indicator ");
+	server.print("\">OFF</span><span class=\"on-indicator ");
 	if (state != 0) server.print("on-active");
-    server.println("\">ON</span>        <span class=\"event-time\">00:00:00</span>");
-    server.println("</div>");
-	server.print  ("<span class=\"indicator-name\">Zone");
-	server.println(num);
+    server.print("\">ON</span><span class=\"event-time\">");
+
+    mystring.print(hour(t));
+    mystring += ":";
+    mystring.print(minute(t));
+    mystring += ":";
+    mystring.print(second(t));
+	mystring += " GMT";
+    server.print(mystring);
+	
+    server.println("</span></div>");
+	server.print  ("<span class=\"indicator-name\">Line ");
+	server.println(num+1);
 	server.println("</span>\n</li>");
 
 }
@@ -157,6 +172,7 @@ void printJsonForEvent(char* buf, int bufSize, event_t *event) {
 
 }
 
+/*
 void eventsCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
 {
 
@@ -182,14 +198,16 @@ void eventsCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
 	server.print("]}");
 
 }
+*/
 
+/*
 void testCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
 {
 	server.httpSuccess("application/json");
 
 	server.print("{\"dateTimeFormat\":\"mmm dd yyy HH:MM:ss GMT\",\"events\":[]}");
 }
-
+*/
 
 void server_init() {
   
@@ -216,8 +234,8 @@ void server_init() {
   /* run the same command if you try to load /index.html, a common
    * default page name */
   webserver.addCommand("index", &helloCmd);
-  webserver.addCommand("events", &eventsCmd);
-  webserver.addCommand("test", &testCmd);
+//  webserver.addCommand("events", &eventsCmd);
+//  webserver.addCommand("test", &testCmd);
 
   /* start the webserver */
   webserver.begin();
