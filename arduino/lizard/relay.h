@@ -1,5 +1,3 @@
-
-
 #ifndef RELAY_H
 #define RELAY_H
 
@@ -9,8 +7,5 @@ void relay_init();
 void serviceRelay();
 uint16_t getRelayState();
 uint16_t getLineState();
-
-
-
 
 #endif

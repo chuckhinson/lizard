@@ -10,8 +10,9 @@
 #include "ntptime.h"
 #include "relay.h"
 #include "events.h"
-#include "status_css.h"
+#include "status_html.h"
 
+// forward-referenced local functions
 void printJsonForEvent(char *, int, event_t *);
 void printInfoColumn(WebServer &server);
 void printIndicatorColumn(WebServer &server);
@@ -27,25 +28,11 @@ static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 #define PREFIX ""
 WebServer webserver(PREFIX, 80);
 
+
 static char jsonEventFormat[] = "{\"seconds\":%ld,\"millis\":%d,\"deviceId\":%d,\"value\":%d}";
+static char timeFormat[] = "%02d:%02d:%02d";
 
 
-const prog_uchar status_doc_part1[] PROGMEM = 
-"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\""
-                 "\"http://www.w3.org/TR/html4/loose.dtd\">"
-                 "<html>"
-                 "<head>"
-				 "<meta http-equiv=\"refresh\" content=\"5\">";
-				 
-const prog_uchar status_doc_part2[] PROGMEM = 
-"<title>Lizard System Status</title>"
-                   "</head>"
-                   "<body>"
-                   "<div class=\"header\">"
-                   "<h1>Lizard System Status</h1>"
-                   "</div>"
-                   "<div class=\"columns\">";				 
-				 
 /* commands are functions that get called by the webserver framework
  * they can read any posted data from client, and they output to the
  * server to send data back to the web browser. */
@@ -60,21 +47,18 @@ void helloCmd(WebServer &server, WebServer::ConnectionType type, char *, bool)
      For a HEAD request, we just stop after outputting headers. */
   if (type != WebServer::HEAD)
   {
-	server.printP(status_doc_part1);
+	server.printP(status_doc_prolog);
 				 
-	server.printP(status_css);
-	
-	server.printP(status_doc_part2);
-	
 	printInfoColumn(server);
 	
 	printIndicatorColumn(server);
 	
-    server.println("</div><body></html>");
+    server.printP(status_doc_epilog);
 
   }
 
 }
+
 
 void printInfoColumn(WebServer &server) {
 
@@ -85,11 +69,7 @@ void printInfoColumn(WebServer &server) {
 	server.print("<p>Last boot: ");
 
 	time_t t = getBootTime();
-    mystring.print(hour(t));
-    mystring += ":";
-    mystring.print(minute(t));
-    mystring += ":";
-    mystring.print(second(t));
+	mystring.format(timeFormat, hour(t), minute(t), second(t));
 	mystring += "GMT ";
 	mystring.print(day(t));
 	mystring +="-";
@@ -110,6 +90,7 @@ void printInfoColumn(WebServer &server) {
 	server.println("</p></div>");
 
 }
+
 
 void printIndicatorColumn(WebServer &server) {
 	int i;
@@ -142,11 +123,7 @@ void printIndicator(WebServer &server, int num) {
 	if (state != 0) server.print("on-active");
     server.print("\">ON</span><span class=\"event-time\">");
 
-    mystring.print(hour(t));
-    mystring += ":";
-    mystring.print(minute(t));
-    mystring += ":";
-    mystring.print(second(t));
+	mystring.format(timeFormat, hour(t), minute(t), second(t));
 	mystring += " GMT";
     server.print(mystring);
 	
@@ -170,7 +147,6 @@ void printJsonForEvent(char* buf, int bufSize, event_t *event) {
 
 }
 
-/*
 void eventsCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
 {
 
@@ -196,7 +172,6 @@ void eventsCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
 	server.print("]}");
 
 }
-*/
 
 /*
 void testCmd(WebServer &server, WebServer::ConnectionType type, char*, bool)
@@ -211,13 +186,13 @@ void server_init() {
   
  
   if (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
+    Serial.println("DHCP init failed");
     // no point in carrying on, so do nothing forevermore:
     for(;;)
       ;
   }
 
-  Serial.print("My IP address: ");
+  Serial.print("IP addr: ");
   for (byte thisByte = 0; thisByte < 4; thisByte++) {
     // print the value of each byte of the IP address:
     Serial.print(Ethernet.localIP()[thisByte], DEC);
@@ -232,7 +207,7 @@ void server_init() {
   /* run the same command if you try to load /index.html, a common
    * default page name */
   webserver.addCommand("index", &helloCmd);
-//  webserver.addCommand("events", &eventsCmd);
+  webserver.addCommand("events", &eventsCmd);
 //  webserver.addCommand("test", &testCmd);
 
   /* start the webserver */

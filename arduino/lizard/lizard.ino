@@ -23,13 +23,13 @@ void setup()
   Serial.println("Startup");
   
   server_init();
-  Serial.println("Server initialized");
+  Serial.println("Server");
   
   ntptime_init();
-  Serial.println("Ntp initialized");
+  Serial.println("Ntp");
 
   relay_init();
-  Serial.println("Relays initialized");
+  Serial.println("Relays");
   
 }
 
@@ -64,7 +64,7 @@ void loop()
   /* This should be done last so as to have latest info gathered on this iteration */
   serviceServer();
 
-  delayTime = 1000 - (millis() % 1000);
+  delayTime = 500 - (millis() % 500);
   delay(delayTime);
   
    

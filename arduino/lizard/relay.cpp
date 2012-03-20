@@ -12,8 +12,6 @@
  */
  
  
-static int state = 0;
-
 #define PIN_COUNT (16)
 static uint16_t activePins = 0x03FC;    // 0000 0011 1111 1100
 
@@ -30,15 +28,16 @@ static int pinToLineMap[] = { -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, -1, -1, -1, -1, -1
 static uint16_t stateRing[ RING_SIZE ];
 static uint16_t ringIndex = 0;
 
+// Current IO pin (relay) state as of latest read
+static int state = 0;
+
+
 void relay_init() {
   int i;
   
   for (i=0; i<PIN_COUNT; i++) {
 	uint16_t mask = (1 << i);
-    Serial.print("checking pin ");
 	if (mask & activePins) {
-	  Serial.print("activating pin ");
-	  Serial.println(i);
 	  pinMode(i, INPUT);
       digitalWrite(i,HIGH);
 	}
@@ -61,7 +60,6 @@ void serviceRelay() {
 	}
   }
 
-  
   ringIndex = ++ringIndex % RING_SIZE;
   stateRing[ringIndex] = readState;
   
@@ -79,7 +77,6 @@ void serviceRelay() {
 
   // clear bits that are stable at 0
   state &= orBits;
-  
   
 }
 

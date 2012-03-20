@@ -1,4 +1,3 @@
-
 #ifndef ntptime_h
 #define ntptime_h 
 

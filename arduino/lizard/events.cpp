@@ -3,14 +3,17 @@
 #include "events.h"
 
 #define EVENT_RING_SZ MAX_EVENTS
-
 static event_t event_buf[ EVENT_RING_SZ];
 static int currEventIndex = 0;
 static uint16_t prevRelayState = 0;
 
-#define MAX_LINES (8)
+// Save the time the last event for each line was generated
 static time_t lastEventTime[MAX_LINES];
+
+// Save the state from the last event generate for each line
 static int lastEventState[MAX_LINES];
+
+
 
 void events_init() {
 
