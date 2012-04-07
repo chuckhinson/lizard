@@ -7,13 +7,18 @@ const int PIN_COUNT  = 16;  // The Arduino only has 13 pins, but we'll leave roo
 							// just because it's a nice round binary number
 
 /*
- * The ethernet shield uses the SPI bus to communicate - this uses digital io pins 11,12, and 13.  It also 
- * uses pin 10 to select the ethernet chip and pin 4 to select the SD card (since we dont use the SD card  
- * I'd think we should be able to use pin 4 for input).  Pins 0 and 1 are the TX and RX pins for the
- * board's serial port, so we cant expect to use those if we still want to do serial debugging.  Which leaves
- * us able to use pins 2 - 9
+ * The ethernet shield uses the SPI bus to communicate - this uses digital io pins 11,12, 
+ * and 13.  It also uses pin 10 to select the ethernet chip and pin 4 to select the SD 
+ * card (since we dont use the SD card I'd think we should be able to use pin 4 for input).  
+ * Pins 0 and 1 are the TX and RX pins for the board's serial port, so we cant expect to 
+ * use those if we still want to do serial debugging.  Which leaves us able to use pins 2 - 9
+ *
+ * Value is a bitmask, 1 bits indicate pin is active/usable.  
  */
-static uint16_t activePins = 0x03FC;    // 0000 0011 1111 1100
+ //                                        1 1 1 1  1 1 
+ //                           pin number:  5 4 3 2  1 0 9 8  7 6 5 4  3 2 1 0
+ //                                        -----------------------------------
+static uint16_t activePins = 0x03FC;    // 0 0 0 0  0 0 1 1  1 1 1 1  1 1 0 0
 
 
 // There are 8 lines coming into the ethernet jack that we have connected to the relays.

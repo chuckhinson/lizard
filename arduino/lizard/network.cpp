@@ -15,7 +15,12 @@ int networkRestartCount = 0;
 //static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE };
 
-
+/*
+ * Start up the ethernet stack.
+ *
+ * This is primarily to get the Wiznet chip initialized and
+ * then to get ourselves an IP address via DHCP.
+ */
 void startEthernet() {
 
   while (Ethernet.begin(mac) == 0) {
@@ -33,7 +38,20 @@ void startEthernet() {
 
 }
 
-
+/*
+ * Restart the networking stack.
+ *
+ * In testing, we've observed that things lock up after a day or
+ * two of continous polling.  Restarting the ethernet stack occasionally
+ * seems to take care of that problem.
+ *
+ * Also, DHCP leases typically expire after 24 hours, so we need to
+ * update our lease to make sure our IP address is given away to some
+ * other device on the network. Note that we take a lazy/brute-force 
+ * approach and restart the entire networking stack rather than just 
+ * updating the DHCP lease.
+ *
+ */
 void restartNetwork() {
 
 	lastNetworkRestartTime = now();
@@ -41,35 +59,55 @@ void restartNetwork() {
 
 	startEthernet();
 	
+	// Since we've restarted the ethernet stack, we'll need to restart
+	// any network services to ensure they're not using old sockets
+	
 	initNtpTime();
 	Serial.println("Ntp");
 
 	initWebServer();
 	Serial.println("Server");
 	
-
 }
 
+/*
+ * Take care of any processing related to networking.
+ * 
+ * This includes keeping our time up to date (ntp) and
+ * servicing any incoming http requests.  Note that we
+ * also check to see if we need to restart the network
+ * in case of errors or to renew our DHCP lease.
+ * 
+ */
 void serviceNetwork() {
 
-	// We've seen things freeze after a few days of being polled every minute
-	// via http, so if we haven't seen a request for a while, we'll assume something's
-	// up with the network and restart.  
-	// We'd also like to refresh our DHCP lease every 24 hours.
 
-	if ((now() - getLastRequestTime()) > (60*3)) {
+	if ((now() - getLastRequestTime()) > (10*60L)) {
+		// It's been a while since we've seen a network request.  Since
+		// we're expecting to be polled continuously, we'll assume there's
+		// something wrong with the network stack and restart it.
 		Serial.println("quiet");
 		restartNetwork();
-	} else if ((now() - lastNetworkRestartTime) > (24 * 60 * 60)) {
+	} else if ((now() - lastNetworkRestartTime) > (24 * 60 * 60L)) {
+		// It's been 24 hourse since the last network reset.  Let's restart
+		// the network in order to update our DHCP lease.
 		Serial.println("24hr reset");
 		restartNetwork();
 	}
 	
 	serviceNtpTime();
+	
 	serviceWebServer();
 
 }
 
+/*
+ * Initialize the network stack.
+ *
+ * This includes setting getting an IP address via DHCP, getting
+ * the current time fron an NTP server and initializing our 
+ * web server.
+ */
 void initNetwork() {
 
 	startEthernet();

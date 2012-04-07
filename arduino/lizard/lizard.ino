@@ -32,11 +32,15 @@ void setup()
 
 void loop()
 {
-	serviceRelays();
+	serviceRelays();  // sample out input pins to get the current
+	                  // state of the attached relays
 
-	processRelayEvents(getLineState());
+	processRelayEvents(getLineState());  // Check relay states for a change
+	                                     // in state and record an event for
+										 // any that have changed state.
 
-	serviceNetwork();
+	serviceNetwork();  // Process any incoming http requests and make
+	                   // sure our networking stack stays healthy
 
 	// Duty cycle of 10 Hz just so the web server will be responsive
 	// to incoming requests - otherwise we could go slower since we

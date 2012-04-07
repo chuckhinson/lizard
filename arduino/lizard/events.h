@@ -11,6 +11,11 @@ typedef struct {
 	uint8_t		value;
 } event_t;	
 
+// Controls the size of the event history buffer; e.g., we store
+// store the last n events wher n=MAX_EVENTS.  Be careful when 
+// adjusting this value.  Not only does it affect the size of 
+// statically allocated data space, it will also affect the amount 
+// of stack space needed.
 #define MAX_EVENTS (16)
 
 // Although there are physically 8 lines coming in to the box, only 7 

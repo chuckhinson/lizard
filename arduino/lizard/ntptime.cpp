@@ -31,6 +31,7 @@ static time_t ntpLastSyncTime = 0;
 static time_t bootTime = 0;
 
 // Some of these IPs may change over time
+// TODO: Change this use use DNS names instead of hard-coded IP addresses.
 static IPAddress servers[] = {
 	IPAddress(192, 43, 244, 18),
 	IPAddress(200,160,0,8),
@@ -88,11 +89,23 @@ void initNtpTime() {
   
 }
 
-
+/*
+ * Perform housekeeping needed to keep ntp time up to date.
+ *
+ * This essentially involves occasionally re-syncing our
+ * time with a time server so our internal clock doesnt
+ * drift too far.
+ *
+ * Note that due to the way we're handling network resets,
+ * this function is not likely to ever actaully issue
+ * an ntp request - that will almost always happen from
+ * the init routine
+ */
 void serviceNtpTime() {
   
   switch (ntpState) {
     case NTP_IN_SYNC :   
+	  // Check to see if we need to re-sync
       if ((ntpLastSyncTime + SYNC_INTERVAL) < now()) {
         ntpState = WAITING_FOR_RESPONSE;
 		currServerIndex = ++currServerIndex % (sizeof servers / sizeof (IPAddress));
@@ -101,6 +114,7 @@ void serviceNtpTime() {
       }
       break;
     case WAITING_FOR_RESPONSE :
+	  // See if we've received a response to a sync request yet
       if ( Udp.parsePacket() ) {
         ntpLastSyncTime = parseNtpPacket();
         setTime(ntpLastSyncTime);
@@ -116,7 +130,13 @@ time_t getBootTime() {
 	return bootTime;
 }
 
-// send an NTP request to the time server at the given address 
+/*
+ * Send an NTP request to the time server at the given address 
+ *
+ * This code was lifted from sample code that was part of an
+ * arduino ntp libary.
+ */
+// 
 void sendNtpPacket(IPAddress& address)
 {
   // set all bytes in the buffer to 0
@@ -142,6 +162,12 @@ void sendNtpPacket(IPAddress& address)
   
 }
 
+/*
+ * Send an NTP request to get the current time.
+ *
+ * This code was lifted from sample code that was part of an
+ * arduino ntp libary.
+ */
 time_t parseNtpPacket() {
   
   Udp.read(packetBuffer,NTP_PACKET_SIZE);  // read the packet into the buffer
@@ -151,7 +177,9 @@ time_t parseNtpPacket() {
 
   unsigned long ntpTime = highWord << 16 | lowWord;  
 
-  return (ntpTime - 2208988800UL);  // Unix time is seconds since Jan 1 1970
+  return (ntpTime - 2208988800UL);  // NTP time is based on 01-Jan-1900, but
+									// we want Unix time which is seconds 
+									// since 01-Jan-1970
   
 }
 
