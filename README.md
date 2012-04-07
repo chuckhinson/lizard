@@ -12,6 +12,8 @@ Lizard consist of the following components
  *    A collection of relays in my basement that are hooked up to the thermostat inputs on my furnace and AC units.
       (I used this approach to protect my Arduino from the 24v AC power used by those systems)
 
+Here is a sample image of the arduino status page: ![Arudino Status Page](ArduinoStatusPage.png)
+
 There were two things that drove the conception of Lizard.  The first was my curiosity about how to determine 
 what temperature to set my set-back thermostats to while no one is home.  The advantage of using a large set-back 
 would be that the system would not run at all while the house is empty, but that might be offset by it having to 
