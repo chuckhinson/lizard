@@ -5,11 +5,11 @@ To build lizard, you will need the [Webduino] (https://github.com/sirleech/Webdu
 a V5 Arduino Ethernet Shield.  It will also run on a Duemilanove with the original Arduino Ethernet Shield (my test system).
 
 Lizard consist of the following components
-- A network-attached arduino used to detect when any of the thermostats in my house are calling for heat or AC
-- An application (ingester) to poll the arduino and store the data collected by the arduino in a database
-- A web application for displaying and analyzing the data collected by the arduino
-- A collection of relays in my basement that are hooked up to the thermostat inputs on my furnace and AC units.
-  (I used this approach to protect my Arduino from the 24v AC power used by those systems)
+ - A network-attached arduino used to detect when any of the thermostats in my house are calling for heat or AC
+ - An application (ingester) to poll the arduino and store the data collected by the arduino in a database
+ - A web application for displaying and analyzing the data collected by the arduino
+ - A collection of relays in my basement that are hooked up to the thermostat inputs on my furnace and AC units.
+   (I used this approach to protect my Arduino from the 24v AC power used by those systems)
 
 There were two things that drove the conception of Lizard.  The first was my curiosity about how to determine 
 what temperature to set my set-back thermostats to while no one is home.  The advantage of using a large set-back 
