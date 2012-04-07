@@ -7,69 +7,41 @@
 #include <WebServer.h>
 #include <PString.h>
 
-#include "ntptime.h"
-#include "wserver.h"
+#include "network.h"
 #include "relay.h"
 #include "events.h"
 
-static int counter = 0;
-static int relayState = 0;
 
 void setup()
 {
-  
-  Serial.begin(9600);
+	  
+	Serial.begin(9600);
 
-  Serial.println("Startup");
+	Serial.println("Startup");
   
-  server_init();
-  Serial.println("Server");
+	initNetwork(); // want to do this first so we have correct time
+	
+	initRelays();
+	Serial.println("Relays");
   
-  ntptime_init();
-  Serial.println("Ntp");
-
-  relay_init();
-  Serial.println("Relays");
-  
+	initEvents();
+	Serial.println("Events");
+	
 }
 
 
-void loop() 
+void loop()
 {
-  unsigned long delayTime;
-  int state;
-  
- 
-  /* Keep time up to date */
-  serviceNtpTime();
+	serviceRelays();
 
-  time_t t = now();
+	processRelayEvents(getLineState());
 
-  serviceRelay();
-  state = getRelayState();
-  if (state != relayState) {
-    Serial.print(hour(t));  
-    Serial.print(":");
-    Serial.print(minute(t));
-    Serial.print(":");
-    Serial.println(second(t));
-    Serial.print("Relay state: ");
-    Serial.println(state);
-    relayState = state;
-  }
+	serviceNetwork();
 
-  processRelayEvents(getLineState());
-  
-  /* process incoming web server connections one at a time forever */
-  /* This should be done last so as to have latest info gathered on this iteration */
-  serviceServer();
-
-  delayTime = 500 - (millis() % 500);
-  delay(delayTime);
-  
-   
-//  Serial.print("millis: ");
-//  Serial.println(millis());
+	// Duty cycle of 10 Hz just so the web server will be responsive
+	// to incoming requests - otherwise we could go slower since we
+	// dont expect lots of activity on the relay lines.
+	delay(100 - (millis() % 100));
 
 }
 

@@ -2,8 +2,9 @@
 #ifndef wserver_h
 #define wserver_h
 
-void server_init();
-void serviceServer();
-
+void initWebServer();
+void serviceWebServer();
+time_t getLastRequestTime();
+int getRequestCount();
 
 #endif

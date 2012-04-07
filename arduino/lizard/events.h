@@ -11,14 +11,14 @@ typedef struct {
 	uint8_t		value;
 } event_t;	
 
-#define MAX_EVENTS (10)
+#define MAX_EVENTS (16)
 
 // Although there are physically 8 lines coming in to the box, only 7 
 // are for input.  The eighth is for ground, and is thus not counted as a line
 #define MAX_LINES (7)
 
 
-void events_init();
+void initEvents();
 void processRelayEvents(int);
 event_t* getNextEvent(time_t, uint16_t);
 time_t getLastEventTime(int);

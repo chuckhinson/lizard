@@ -1,8 +1,9 @@
 #include <Arduino.h>
 
+#include "ntptime.h"
 #include "events.h"
 
-#define EVENT_RING_SZ MAX_EVENTS
+const int EVENT_RING_SZ = MAX_EVENTS;
 static event_t event_buf[ EVENT_RING_SZ];
 static int currEventIndex = 0;
 static uint16_t prevRelayState = 0;
@@ -14,17 +15,19 @@ static time_t lastEventTime[MAX_LINES];
 static int lastEventState[MAX_LINES];
 
 
-
-void events_init() {
-
+time_t getLastEventTime(int i) {
+  return lastEventTime[i];
 }
 
+int getLastEventState(int i) {
+  return lastEventState[i];
+}
 
 
 /*
  * Create new events based on the current input line state.
  *
- * Note that we're using fake milliseconds in our event timestampsin 
+ * Note that we're using fake milliseconds in our event timestamps in 
  * order to give us unique timestamps.  Because the time returned by 
  * now() is not synchronized with the millisecond count returned by 
  * millis(), there's no easy way combine the two into a single timestamp 
@@ -81,10 +84,6 @@ event_t* getNextEvent(time_t seconds, uint16_t milliseconds) {
 	for (int i=1; i<= EVENT_RING_SZ; i++) {
 		int index = (currEventIndex + i) % EVENT_RING_SZ;
 
-		Serial.print("event:");
-		Serial.print(event_buf[index].seconds);
-		Serial.print(":");
-		Serial.println(event_buf[index].millis);
 		if ((event_buf[index].seconds > seconds) ||
 			((event_buf[index].seconds == seconds) && (event_buf[index].millis > milliseconds))){
 			nextEvent = &event_buf[index];
@@ -96,10 +95,14 @@ event_t* getNextEvent(time_t seconds, uint16_t milliseconds) {
 
 }
 
-time_t getLastEventTime(int i) {
-  return lastEventTime[i];
+void initEvents() {
+
+	int i=0;
+	
+	for (i=0;i<MAX_LINES;i++) {
+		lastEventTime[i] = getBootTime();
+	}
+
 }
 
-int getLastEventState(int i) {
-  return lastEventState[i];
-}
+

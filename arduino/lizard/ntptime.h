@@ -1,7 +1,9 @@
 #ifndef ntptime_h
 #define ntptime_h 
 
-void ntptime_init();
+#include<time.h>
+
+void initNtpTime();
 void serviceNtpTime();
 time_t getBootTime();
 

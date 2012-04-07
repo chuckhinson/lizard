@@ -3,7 +3,7 @@ const prog_uchar status_doc_prolog[] PROGMEM =
                  "\"http://www.w3.org/TR/html4/loose.dtd\">"
                  "<html>"
                  "<head>"
-				 "<meta http-equiv=\"refresh\" content=\"5\">"
+				 "<meta http-equiv=\"refresh\" content=\"10\">"
 "<style type=\"text/css\">"
 "body {"
 "margin: 0px;"
@@ -86,6 +86,19 @@ const prog_uchar status_doc_prolog[] PROGMEM =
 "<h1>Lizard System Status</h1>"
 "</div>"
 "<div class=\"columns\">";				 
+
+const prog_uchar status_col_line1[] PROGMEM = "<div class=\"info-column\">\n<p>Last boot: ";
+const prog_uchar status_col_line2[] PROGMEM = "</p><p>Last Network Restart: ";
+const prog_uchar status_col_line3[] PROGMEM = "</p><p>Number of Network Restarts: ";
+
+const prog_uchar indicator_col_start[] PROGMEM = "<div class=\"indicator-column\">\n<ul class=indicator-list>\n";
+const prog_uchar indicator_col_end[] PROGMEM = "</ul>\n</div>";
+
+const prog_uchar indicator_line_start[] PROGMEM = "<li>\n<div class=\"indicator\">\n<span class=\"off-indicator ";
+const prog_uchar indicator_line_off[] PROGMEM = "\">OFF</span><span class=\"on-indicator ";
+const prog_uchar indicator_line_on[] PROGMEM = "\">ON</span><span class=\"event-time\">";
+const prog_uchar indicator_line_name[] PROGMEM = "</span></div>\n<span class=\"indicator-name\">Line ";
+const prog_uchar indicator_line_end[] PROGMEM = "</span>\n</li>";
 
 const prog_uchar status_doc_epilog[] PROGMEM = "</div><body></html>";
 
