@@ -25,7 +25,7 @@ const int NTP_IN_SYNC = 1;
 const int WAITING_FOR_RESPONSE = 2;
 
 const int MAX_RETRIES = 10;
-const time_t SYNC_INTERVAL = 24 * 60 * 60;  // in seconds
+const time_t SYNC_INTERVAL = 24 * 60 * 60L;  // in seconds
 static time_t ntpLastSyncTime = 0;
 
 static time_t bootTime = 0;
