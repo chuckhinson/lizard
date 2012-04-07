@@ -1,9 +1,5 @@
 Lizard is a system for monitoring the heating and air conditioning systems in my house.  
 
-To build lizard, you will need the [Webduino] (https://github.com/sirleech/Webduino) library and the 
-[Arduino Time Library](http://www.arduino.cc/playground/Code/Time).  My system currently runs on an Uno with 
-a V5 Arduino Ethernet Shield.  It will also run on a Duemilanove with the original Arduino Ethernet Shield (my test system).
-
 Lizard consist of the following components
 
  *    A network-attached arduino used to detect when any of the thermostats in my house are calling for heat or AC
@@ -12,7 +8,51 @@ Lizard consist of the following components
  *    A collection of relays in my basement that are hooked up to the thermostat inputs on my furnace and AC units.
       (I used this approach to protect my Arduino from the 24v AC power used by those systems)
 
-Here is a sample image of the arduino status page: ![Arudino Status Page](ArduinoStatusPage.png?raw=true)
+Currently, only the arduino and ingester portions of the system exist.  
+
+##Arduino##
+The arduino collects data in the form of events.  An event is recorded any time the state of one of the thermostat 
+relays changes.  An event records the time of the change, the id of the relay that changed and the new state of the relay.
+
+The arduino provides access to the event data that it collects via an http server.  There are three endpoints defined in
+the http server:
+ *    An html status page which provides a graphical display of the current state of the relays along with some other
+      status information
+ *    A JSON-formatted version of the status page to make it easier for client software to parse and process the 
+      current status.
+ *    An events page that contains a list of the last n events that were collected.  The event data is also formatted
+      as JSON to allow easy processing by client software.
+
+In addition to network and power connections, the arduino can be connected to up to seven relays via an RJ-45 
+connector.  Pins 0 - 7 of the RJ-45 jack are connected to digital I/O pins on the arduino, and pin 8 of the jack
+is connected to the arduino's ground.  The arduino digital I/O pins connected to the RJ-45 jack have their pull-up
+resistors enabled so that the pins are are pulled high while the relays are open and then go to ground when relays close. 
+The relays are driven by the 24 VAC signal coming from the thermostats in the house. (There are three heating signals and
+two cooling signals.  I also intend to have the aquastat in the water heater drive another relay.)
+
+To build the arduino portion of lizard, you will need the [Webduino] (https://github.com/sirleech/Webduino) library and the 
+[Arduino Time Library](http://www.arduino.cc/playground/Code/Time).  My system currently runs on an Uno with 
+a V5 Arduino Ethernet Shield.  It will also run on a Duemilanove with the original Arduino Ethernet Shield (my test system).
+
+
+##Ingester##
+The ingester is http client software that polls the arduino for event data and store the data in a database
+for further processing.  It is intended to run continuously as a background process on a computer that is 
+turned on all the time.
+
+An initial version of the ingester has been written in Groovy and stores the data in a HSQL database.  It polls the
+arduino every minute for new event data.  Because the arduino has a limited amount of RAM, the ingester needs
+to poll the arduino often enough so that old event data does not get pushed out of the arduino's buffer before
+it can be collected.  
+
+The ingester currently polls the arduino for data every minute. While one would not expect thermostats to cycle on and 
+off very rapidly, the iniial data I've collected shows my thermostats cylcing on and off every three to five minutes 
+in cold weather (we have gas hot water heat). At that rate, a sample period of more than ten minutes would probably be
+too long for the worst-case scenario as the arduino currently only has room to store the last 16 events (each thermostat 
+cylcing on and off every three minutes could give up to 18 events in 15 minutes).
+
+
+##Background##
 
 There were two things that drove the conception of Lizard.  The first was my curiosity about how to determine 
 what temperature to set my set-back thermostats to while no one is home.  The advantage of using a large set-back 
