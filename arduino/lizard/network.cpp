@@ -62,7 +62,7 @@ void restartNetwork() {
 	// Since we've restarted the ethernet stack, we'll need to restart
 	// any network services to ensure they're not using old sockets
 	
-	initNtpTime();
+	restartNtpTime();
 	Serial.println("Ntp");
 
 	initWebServer();
@@ -91,7 +91,8 @@ void serviceNetwork() {
 	} else if ((now() - lastNetworkRestartTime) > (24 * 60 * 60L)) {
 		// It's been 24 hourse since the last network reset.  Let's restart
 		// the network in order to update our DHCP lease.
-		Serial.println("24hr reset");
+		Serial.print("24hr reset - ");
+		Serial.println(now());
 		restartNetwork();
 	}
 	

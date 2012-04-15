@@ -3,6 +3,7 @@
 
 void initNetwork();
 void serviceNetwork();
+void startEthernet();
 
 extern time_t lastNetworkRestartTime;
 extern int networkRestartCount;
